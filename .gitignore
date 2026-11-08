@@ -1,0 +1,20 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+.vscode/
+*.log
+# Platform build outputs
+android/.gradle/
+android/local.properties
+android/app/debug/
+android/app/release/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+windows/flutter/ephemeral/
