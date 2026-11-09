@@ -19,10 +19,19 @@ class JsonStore {
     }
   }
 
-  Future<void> write(String name, Map<String, dynamic> data) async {
-    final file = await _file(name);
-    final tmp = File('${file.path}.tmp');
-    await tmp.writeAsString(jsonEncode(data), flush: true);
-    await tmp.rename(file.path);
+  /// Writes run one after another: two overlapping writes to the same
+  /// document would otherwise race on the same temp file.
+  Future<void> _queue = Future.value();
+
+  Future<void> write(String name, Map<String, dynamic> data) {
+    final encoded = jsonEncode(data);
+    final next = _queue.then((_) async {
+      final file = await _file(name);
+      final tmp = File('${file.path}.tmp');
+      await tmp.writeAsString(encoded, flush: true);
+      await tmp.rename(file.path);
+    });
+    _queue = next.catchError((Object _) {});
+    return next;
   }
 }
