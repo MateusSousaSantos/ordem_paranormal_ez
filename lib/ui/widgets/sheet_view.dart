@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../game/character_sheet.dart';
+import 'die_stepper.dart';
 
-/// Shows a character sheet and reports every edit through [onChanged].
-/// Used both by the player (own sheet) and by the GM (any sheet).
+/// A character sheet during play. Reports every edit through [onChanged].
+/// Used by the player (own character) and by the GM (any character).
 class SheetView extends StatelessWidget {
   const SheetView({super.key, required this.sheet, required this.onChanged});
 
@@ -13,31 +14,56 @@ class SheetView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final subtitle = [
+      'Nível ${sheet.nivel}',
+      if (sheet.vocacao.isNotEmpty) sheet.vocacao,
+      sheet.perfil.label,
+    ].join(' · ');
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text(sheet.name, style: theme.textTheme.headlineSmall),
+        Text(sheet.name.isEmpty ? 'Sem nome' : sheet.name, style: theme.textTheme.headlineSmall),
+        Text(subtitle, style: theme.textTheme.bodyMedium),
         const SizedBox(height: 16),
-        for (final key in sheet.resources.keys)
-          _ResourceRow(
-            label: GameRules.resourceLabels[key] ?? key,
-            resource: sheet.resources[key]!,
-            onDelta: (d) => onChanged(sheet.adjustResource(key, d)),
-            onMaxChanged: (m) =>
-                onChanged(sheet.withResource(key, sheet.resources[key]!.copyWith(max: m))),
-          ),
+        ResourceRow(
+          label: 'PV',
+          resource: sheet.pv,
+          onDelta: (d) => onChanged(sheet.adjustPv(d)),
+          onMaxChanged: (m) => onChanged(sheet.copyWith(pv: sheet.pv.copyWith(max: m))),
+        ),
+        ResourceRow(
+          label: 'PD',
+          resource: sheet.pd,
+          onDelta: (d) => onChanged(sheet.adjustPd(d)),
+          onMaxChanged: (m) => onChanged(sheet.copyWith(pd: sheet.pd.copyWith(max: m))),
+        ),
         const SizedBox(height: 16),
-        Text('Attributes', style: theme.textTheme.titleMedium),
+        Text('Atributos', style: theme.textTheme.titleMedium),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final key in sheet.attributes.keys)
-              _AttributeChip(
+            for (final key in GameRules.atributos)
+              DieStepper(
+                label: GameRules.atributoLabels[key]!,
+                die: sheet.atributos[key]!,
+                onChanged: (d) => onChanged(sheet.withAtributo(key, d)),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text('Perícias', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final key in GameRules.pericias)
+              DieStepper(
                 label: key,
-                value: sheet.attributes[key]!,
-                onChanged: (v) => onChanged(sheet.withAttribute(key, v)),
+                die: sheet.pericias[key]!,
+                onChanged: (d) => onChanged(sheet.withPericia(key, d)),
               ),
           ],
         ),
@@ -46,8 +72,10 @@ class SheetView extends StatelessWidget {
   }
 }
 
-class _ResourceRow extends StatelessWidget {
-  const _ResourceRow({
+/// PV / PD bar with -/+ buttons. Tap the numbers to change the maximum.
+class ResourceRow extends StatelessWidget {
+  const ResourceRow({
+    super.key,
     required this.label,
     required this.resource,
     required this.onDelta,
@@ -92,7 +120,7 @@ class _ResourceRow extends StatelessWidget {
     final value = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Max $label'),
+        title: Text('$label máximo'),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
@@ -108,43 +136,5 @@ class _ResourceRow extends StatelessWidget {
       ),
     );
     if (value != null && value >= 0) onMaxChanged(value);
-  }
-}
-
-class _AttributeChip extends StatelessWidget {
-  const _AttributeChip({required this.label, required this.value, required this.onChanged});
-
-  final String label;
-  final int value;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.remove, size: 18),
-              onPressed: value > 0 ? () => onChanged(value - 1) : null,
-            ),
-            Column(
-              children: [
-                Text(label, style: Theme.of(context).textTheme.labelSmall),
-                Text('$value', style: Theme.of(context).textTheme.titleLarge),
-              ],
-            ),
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.add, size: 18),
-              onPressed: () => onChanged(value + 1),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

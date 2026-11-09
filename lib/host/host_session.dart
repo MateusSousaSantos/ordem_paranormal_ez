@@ -129,8 +129,7 @@ class HostSession extends ChangeNotifier {
           final stored = _sheets[message.playerId];
           final incoming = message.sheet;
           if (stored == null) {
-            sheet = incoming ??
-                GameRules.newSheet(id: message.playerId, name: message.playerName);
+            sheet = incoming ?? GameRules.newSheet(id: message.playerId, name: message.playerName);
           } else if (incoming != null && incoming.updatedAt > stored.updatedAt) {
             sheet = incoming;
           } else {
@@ -138,8 +137,7 @@ class HostSession extends ChangeNotifier {
           }
           _sheets[sheet.id] = sheet;
           _online.add(message.playerId);
-          _broadcast(PlayerStatusMessage(playerId: message.playerId, online: true),
-              except: client);
+          _broadcast(PlayerStatusMessage(playerId: message.playerId, online: true), except: client);
           _broadcast(SheetChangedMessage(sheet), except: client);
           _save();
         }

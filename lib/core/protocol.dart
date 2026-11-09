@@ -62,11 +62,9 @@ sealed class Message {
               .toList(),
         );
       case SheetUpdateMessage.kType:
-        return SheetUpdateMessage(
-            CharacterSheet.fromJson(json['sheet'] as Map<String, dynamic>));
+        return SheetUpdateMessage(CharacterSheet.fromJson(json['sheet'] as Map<String, dynamic>));
       case SheetChangedMessage.kType:
-        return SheetChangedMessage(
-            CharacterSheet.fromJson(json['sheet'] as Map<String, dynamic>));
+        return SheetChangedMessage(CharacterSheet.fromJson(json['sheet'] as Map<String, dynamic>));
       case PlayerStatusMessage.kType:
         return PlayerStatusMessage(
           playerId: json['playerId'] as String,

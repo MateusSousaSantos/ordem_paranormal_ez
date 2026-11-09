@@ -99,8 +99,7 @@ class _GmDashboardScreenState extends State<GmDashboardScreen> {
         content: TextField(controller: controller, autofocus: true),
         actions: [
           FilledButton(
-              onPressed: () => Navigator.pop(context, controller.text),
-              child: const Text('Save')),
+              onPressed: () => Navigator.pop(context, controller.text), child: const Text('Save')),
         ],
       ),
     );
@@ -164,9 +163,8 @@ class _PlayerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final summary = sheet.resources.entries
-        .map((e) => '${e.key} ${e.value.current}/${e.value.max}')
-        .join('   ');
+    final summary = 'PV ${sheet.pv.current}/${sheet.pv.max}   '
+        'PD ${sheet.pd.current}/${sheet.pd.max}   Nível ${sheet.nivel}';
     return ListTile(
       leading: Icon(Icons.circle, size: 12, color: online ? Colors.green : Colors.grey),
       title: Text(sheet.name),

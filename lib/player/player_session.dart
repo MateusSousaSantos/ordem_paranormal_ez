@@ -2,28 +2,30 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:uuid/uuid.dart';
 
 import '../core/json_store.dart';
 import '../core/protocol.dart';
+import '../game/character_library.dart';
 import '../game/character_sheet.dart';
 
 enum ConnectionStatus { disconnected, connecting, connected }
 
-/// A player's side of a session. Keeps the player's own sheet saved on the
-/// phone, sends every change to the GM host and applies changes the GM makes.
-/// Reconnects automatically if the Wi-Fi drops.
+/// A player's side of a session, playing one character from their
+/// [CharacterLibrary]. Every change is saved on the phone, sent to the GM
+/// host, and changes the GM makes are applied back. Reconnects automatically
+/// if the Wi-Fi drops.
 class PlayerSession extends ChangeNotifier {
-  PlayerSession({required this.store});
+  PlayerSession({required this.store, required this.library});
 
   final JsonStore store;
-  static const _storeKey = 'player';
+  final CharacterLibrary library;
+  static const _storeKey = 'last_host';
 
-  late String playerId;
-  String playerName = '';
-  CharacterSheet? sheet;
   String? lastHost;
   int lastPort = defaultPort;
+
+  /// The character being played. Its id identifies the player to the host.
+  CharacterSheet? sheet;
 
   String? sessionName;
   final Map<String, CharacterSheet> party = {};
@@ -36,25 +38,25 @@ class PlayerSession extends ChangeNotifier {
   int _reconnectAttempt = 0;
   bool _wantConnected = false;
 
+  /// Loads the last host address used, to prefill the join screen.
   Future<void> load() async {
     final saved = await store.read(_storeKey);
-    playerId = saved?['playerId'] as String? ?? const Uuid().v4();
-    playerName = saved?['playerName'] as String? ?? '';
-    lastHost = saved?['lastHost'] as String?;
-    lastPort = (saved?['lastPort'] as num?)?.toInt() ?? defaultPort;
-    final s = saved?['sheet'];
-    if (s != null) sheet = CharacterSheet.fromJson(s as Map<String, dynamic>);
-    await _save();
+    lastHost = saved?['host'] as String?;
+    lastPort = (saved?['port'] as num?)?.toInt() ?? defaultPort;
     notifyListeners();
   }
 
-  Future<void> connect({required String host, int port = defaultPort, required String name}) async {
-    playerName = name.trim();
+  Future<void> connect({
+    required String host,
+    int port = defaultPort,
+    required CharacterSheet character,
+  }) async {
+    sheet = character;
     lastHost = host;
     lastPort = port;
     _wantConnected = true;
     _reconnectAttempt = 0;
-    await _save();
+    await store.write(_storeKey, {'host': host, 'port': port});
     await _open();
   }
 
@@ -67,24 +69,29 @@ class PlayerSession extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Change the player's own sheet. Saved locally and sent to the GM.
+  /// Change the character. Saved locally and sent to the GM.
   void updateSheet(CharacterSheet updated) {
-    sheet = updated;
-    party[updated.id] = updated;
-    _save();
+    _apply(updated);
     _send(SheetUpdateMessage(updated));
     notifyListeners();
   }
 
+  void _apply(CharacterSheet updated) {
+    sheet = updated;
+    party[updated.id] = updated;
+    library.save(updated);
+  }
+
   Future<void> _open() async {
     final host = lastHost;
-    if (host == null) return;
+    final character = sheet;
+    if (host == null || character == null) return;
     status = ConnectionStatus.connecting;
     lastError = null;
     notifyListeners();
     try {
-      final socket = await WebSocket.connect('ws://$host:$lastPort')
-          .timeout(const Duration(seconds: 5));
+      final socket =
+          await WebSocket.connect('ws://$host:$lastPort').timeout(const Duration(seconds: 5));
       socket.pingInterval = const Duration(seconds: 5);
       _socket = socket;
       socket.listen(
@@ -96,8 +103,8 @@ class PlayerSession extends ChangeNotifier {
         cancelOnError: true,
       );
       socket.add(HelloMessage(
-        playerId: playerId,
-        playerName: playerName,
+        playerId: character.id,
+        playerName: character.name,
         sheet: sheet,
       ).encode());
     } on Object catch (e) {
@@ -113,15 +120,14 @@ class PlayerSession extends ChangeNotifier {
         party
           ..clear()
           ..addEntries(message.party.map((s) => MapEntry(s.id, s)));
-        if (message.sheet != null) sheet = message.sheet;
+        if (message.sheet != null) _apply(message.sheet!);
         status = ConnectionStatus.connected;
         _reconnectAttempt = 0;
-        _save();
       case SheetChangedMessage():
-        party[message.sheet.id] = message.sheet;
-        if (message.sheet.id == playerId) {
-          sheet = message.sheet;
-          _save();
+        if (message.sheet.id == sheet?.id) {
+          _apply(message.sheet);
+        } else {
+          party[message.sheet.id] = message.sheet;
         }
       case PlayerStatusMessage():
         message.online
@@ -150,14 +156,6 @@ class PlayerSession extends ChangeNotifier {
   void _send(Message m) {
     if (status == ConnectionStatus.connected) _socket?.add(m.encode());
   }
-
-  Future<void> _save() => store.write(_storeKey, {
-        'playerId': playerId,
-        'playerName': playerName,
-        if (lastHost != null) 'lastHost': lastHost,
-        'lastPort': lastPort,
-        if (sheet != null) 'sheet': sheet!.toJson(),
-      });
 
   bool _disposed = false;
 

@@ -66,8 +66,7 @@ class LanBrowser extends ChangeNotifier {
 
   void _add(BonsoirService s) {
     // Prefer IPv4: easier to read and to type by hand.
-    final address =
-        s.hostAddresses.where((a) => !a.contains(':')).firstOrNull ?? s.hostAddress;
+    final address = s.hostAddresses.where((a) => !a.contains(':')).firstOrNull ?? s.hostAddress;
     if (address == null) return;
     _hosts[s.name] = FoundHost(name: s.name, address: address, port: s.port);
     notifyListeners();
