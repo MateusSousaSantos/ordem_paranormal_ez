@@ -68,6 +68,9 @@ class Resource {
 }
 
 class GameRules {
+  /// Executor's Ímpeto bar has this many slots.
+  static const impetoMax = 7;
+
   /// The three core attributes.
   static const atributos = ['fisico', 'mente', 'emocao'];
   static const atributoLabels = {
@@ -114,6 +117,7 @@ class GameRules {
       pd: const Resource(current: 10, max: 10),
       habilidades: const [],
       inventario: const [],
+      impeto: 0,
       notes: '',
       updatedAt: DateTime.now().millisecondsSinceEpoch,
     );
@@ -135,6 +139,7 @@ class CharacterSheet {
     required this.pd,
     required this.habilidades,
     required this.inventario,
+    this.impeto = 0,
     required this.notes,
     required this.updatedAt,
   });
@@ -152,6 +157,9 @@ class CharacterSheet {
   final Resource pd;
   final List<Habilidade> habilidades;
   final List<String> inventario;
+
+  /// Executor ability: filled Ímpeto slots, 0..[GameRules.impetoMax].
+  final int impeto;
   final String notes;
 
   /// Milliseconds since epoch of the last change.
@@ -168,6 +176,7 @@ class CharacterSheet {
     Resource? pd,
     List<Habilidade>? habilidades,
     List<String>? inventario,
+    int? impeto,
     String? notes,
   }) {
     return CharacterSheet(
@@ -182,6 +191,7 @@ class CharacterSheet {
       pd: pd ?? this.pd,
       habilidades: habilidades ?? this.habilidades,
       inventario: inventario ?? this.inventario,
+      impeto: (impeto ?? this.impeto).clamp(0, GameRules.impetoMax),
       notes: notes ?? this.notes,
       updatedAt: DateTime.now().millisecondsSinceEpoch,
     );
@@ -208,6 +218,7 @@ class CharacterSheet {
         'pd': pd.toJson(),
         'habilidades': habilidades.map((h) => h.toJson()).toList(),
         'inventario': inventario,
+        'impeto': impeto,
         'notes': notes,
         'updatedAt': updatedAt,
       };
@@ -241,6 +252,7 @@ class CharacterSheet {
           Habilidade.fromJson(h as Map<String, dynamic>),
       ],
       inventario: [for (final i in json['inventario'] as List? ?? const []) i as String],
+      impeto: ((json['impeto'] as num?)?.toInt() ?? 0).clamp(0, GameRules.impetoMax),
       notes: json['notes'] as String? ?? '',
       updatedAt: (json['updatedAt'] as num?)?.toInt() ?? 0,
     );

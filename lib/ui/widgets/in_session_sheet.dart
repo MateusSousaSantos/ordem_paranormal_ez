@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../game/character_sheet.dart';
 import '../theme/sheet_style.dart';
 import 'die_badge.dart';
+import 'perfil_ability.dart';
 import 'resource_tracker.dart';
 
 /// The landscape character sheet used during a session.
@@ -74,6 +75,13 @@ class InSessionSheet extends StatelessWidget {
                             ],
                           ),
                         ),
+                        if (PerfilAbility.hasAbility(sheet.perfil)) ...[
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: PerfilAbility(sheet: sheet, onChanged: onChanged),
+                          ),
+                        ],
                         const SizedBox(height: 10),
                         SizedBox(
                           height: 78,

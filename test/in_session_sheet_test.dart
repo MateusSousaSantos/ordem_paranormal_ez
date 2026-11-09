@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opez/game/character_sheet.dart';
 import 'package:opez/ui/widgets/in_session_sheet.dart';
+import 'package:opez/ui/widgets/resource_tracker.dart';
 
 void main() {
   testWidgets('tapping a PV box sets current PV to that box', (tester) async {
@@ -18,13 +19,13 @@ void main() {
 
     expect(find.text('Perícias'), findsOneWidget);
 
-    // PV boxes are the first 10 tappable squares after the PV label.
+    // Inside the PV tracker: the label/circle, then one tappable box per point.
     final boxes = find.descendant(
-      of: find.byType(Wrap).first,
+      of: find.byType(ResourceTracker).first,
       matching: find.byType(GestureDetector),
     );
-    expect(boxes, findsNWidgets(10));
-    await tester.tap(boxes.at(4));
+    expect(boxes, findsNWidgets(11));
+    await tester.tap(boxes.at(5));
     expect(sheet.pv.current, 5);
   });
 }
