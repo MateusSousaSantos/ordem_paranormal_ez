@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../player/player_session.dart';
-import 'widgets/sheet_view.dart';
+import 'theme/sheet_style.dart';
+import 'widgets/in_session_sheet.dart';
 
-/// The player's own sheet, synced live with the GM.
+/// The player's own sheet during a session, in landscape, synced with the GM.
 class PlayerSheetScreen extends StatefulWidget {
   const PlayerSheetScreen({super.key, required this.session});
 
@@ -15,7 +17,17 @@ class PlayerSheetScreen extends StatefulWidget {
 
 class _PlayerSheetScreenState extends State<PlayerSheetScreen> {
   @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
+
+  @override
   void dispose() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     widget.session.dispose();
     super.dispose();
   }
@@ -23,23 +35,28 @@ class _PlayerSheetScreenState extends State<PlayerSheetScreen> {
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
-    return ListenableBuilder(
-      listenable: session,
-      builder: (context, _) {
-        final sheet = session.sheet;
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(session.sessionName ?? 'Connecting...'),
-            actions: [_StatusIcon(status: session.status)],
-          ),
-          body: sheet == null
-              ? Center(
-                  child: Text(session.lastError ?? 'Waiting for the GM...',
-                      textAlign: TextAlign.center),
-                )
-              : SheetView(sheet: sheet, onChanged: session.updateSheet),
-        );
-      },
+    return Scaffold(
+      backgroundColor: SheetStyle.background,
+      body: SafeArea(
+        child: ListenableBuilder(
+          listenable: session,
+          builder: (context, _) {
+            final sheet = session.sheet;
+            if (sheet == null) {
+              return Center(
+                child: Text(session.lastError ?? 'Esperando o mestre...',
+                    style: SheetStyle.mono(13), textAlign: TextAlign.center),
+              );
+            }
+            return InSessionSheet(
+              sheet: sheet,
+              onChanged: session.updateSheet,
+              onClose: () => Navigator.pop(context),
+              statusIcon: _StatusIcon(status: session.status),
+            );
+          },
+        ),
+      ),
     );
   }
 }
@@ -52,13 +69,10 @@ class _StatusIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (icon, color, tip) = switch (status) {
-      ConnectionStatus.connected => (Icons.wifi, Colors.green, 'Connected to GM'),
-      ConnectionStatus.connecting => (Icons.wifi_find, Colors.amber, 'Connecting...'),
-      ConnectionStatus.disconnected => (Icons.wifi_off, Colors.red, 'Offline, reconnecting'),
+      ConnectionStatus.connected => (Icons.wifi, Colors.greenAccent, 'Conectado ao mestre'),
+      ConnectionStatus.connecting => (Icons.wifi_find, Colors.amber, 'Conectando...'),
+      ConnectionStatus.disconnected => (Icons.wifi_off, Colors.redAccent, 'Offline, reconectando'),
     };
-    return Padding(
-      padding: const EdgeInsets.only(right: 12),
-      child: Tooltip(message: tip, child: Icon(icon, color: color)),
-    );
+    return Tooltip(message: tip, child: Icon(icon, color: color, size: 20));
   }
 }

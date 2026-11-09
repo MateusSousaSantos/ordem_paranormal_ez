@@ -30,6 +30,22 @@ enum PerfilPsicologico {
   final String label;
 }
 
+/// An ability shown on the in-session card. [descricao] may mark bold
+/// parts with **double asterisks**.
+class Habilidade {
+  const Habilidade({required this.nome, required this.descricao});
+
+  final String nome;
+  final String descricao;
+
+  Map<String, dynamic> toJson() => {'nome': nome, 'descricao': descricao};
+
+  factory Habilidade.fromJson(Map<String, dynamic> json) => Habilidade(
+        nome: json['nome'] as String? ?? '',
+        descricao: json['descricao'] as String? ?? '',
+      );
+}
+
 /// A value with a current and a maximum (PV, PD).
 class Resource {
   const Resource({required this.current, required this.max});
@@ -96,6 +112,8 @@ class GameRules {
       pericias: {for (final p in pericias) p: Die.d4},
       pv: const Resource(current: 10, max: 10),
       pd: const Resource(current: 10, max: 10),
+      habilidades: const [],
+      inventario: const [],
       notes: '',
       updatedAt: DateTime.now().millisecondsSinceEpoch,
     );
@@ -115,6 +133,8 @@ class CharacterSheet {
     required this.pericias,
     required this.pv,
     required this.pd,
+    required this.habilidades,
+    required this.inventario,
     required this.notes,
     required this.updatedAt,
   });
@@ -130,6 +150,8 @@ class CharacterSheet {
   final Map<String, Die> pericias;
   final Resource pv;
   final Resource pd;
+  final List<Habilidade> habilidades;
+  final List<String> inventario;
   final String notes;
 
   /// Milliseconds since epoch of the last change.
@@ -144,6 +166,8 @@ class CharacterSheet {
     Map<String, Die>? pericias,
     Resource? pv,
     Resource? pd,
+    List<Habilidade>? habilidades,
+    List<String>? inventario,
     String? notes,
   }) {
     return CharacterSheet(
@@ -156,6 +180,8 @@ class CharacterSheet {
       pericias: pericias ?? this.pericias,
       pv: pv ?? this.pv,
       pd: pd ?? this.pd,
+      habilidades: habilidades ?? this.habilidades,
+      inventario: inventario ?? this.inventario,
       notes: notes ?? this.notes,
       updatedAt: DateTime.now().millisecondsSinceEpoch,
     );
@@ -180,6 +206,8 @@ class CharacterSheet {
         'pericias': pericias.map((k, v) => MapEntry(k, v.name)),
         'pv': pv.toJson(),
         'pd': pd.toJson(),
+        'habilidades': habilidades.map((h) => h.toJson()).toList(),
+        'inventario': inventario,
         'notes': notes,
         'updatedAt': updatedAt,
       };
@@ -208,6 +236,11 @@ class CharacterSheet {
       pd: json['pd'] == null
           ? const Resource(current: 10, max: 10)
           : Resource.fromJson(json['pd'] as Map<String, dynamic>),
+      habilidades: [
+        for (final h in json['habilidades'] as List? ?? const [])
+          Habilidade.fromJson(h as Map<String, dynamic>),
+      ],
+      inventario: [for (final i in json['inventario'] as List? ?? const []) i as String],
       notes: json['notes'] as String? ?? '',
       updatedAt: (json['updatedAt'] as num?)?.toInt() ?? 0,
     );

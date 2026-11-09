@@ -50,6 +50,53 @@ class _CharacterEditScreenState extends State<CharacterEditScreen> {
     if (mounted) Navigator.pop(context, sheet);
   }
 
+  /// Adds a habilidade (index null) or edits the one at [index].
+  Future<void> _editHabilidade(int? index) async {
+    final existing = index == null ? null : _sheet.habilidades[index];
+    final nome = TextEditingController(text: existing?.nome ?? '');
+    final descricao = TextEditingController(text: existing?.descricao ?? '');
+    final result = await showDialog<Habilidade>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(index == null ? 'Nova habilidade' : 'Editar habilidade'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nome,
+              decoration: const InputDecoration(labelText: 'Nome'),
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            TextField(
+              controller: descricao,
+              decoration: const InputDecoration(
+                labelText: 'Descrição',
+                helperText: 'Use **texto** para negrito',
+              ),
+              minLines: 3,
+              maxLines: 6,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          FilledButton(
+            onPressed: () {
+              if (nome.text.trim().isEmpty) return;
+              Navigator.pop(
+                  context, Habilidade(nome: nome.text.trim(), descricao: descricao.text.trim()));
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
+    if (result == null) return;
+    final list = [..._sheet.habilidades];
+    index == null ? list.add(result) : list[index] = result;
+    setState(() => _sheet = _sheet.copyWith(habilidades: list));
+  }
+
   String? _required(String? v) => (v == null || v.trim().isEmpty) ? 'Obrigatório' : null;
 
   String? _number(String? v) {
@@ -153,6 +200,33 @@ class _CharacterEditScreenState extends State<CharacterEditScreen> {
                   ),
               ],
             ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(child: Text('Habilidades', style: theme.textTheme.titleMedium)),
+                TextButton.icon(
+                  onPressed: () => _editHabilidade(null),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Adicionar'),
+                ),
+              ],
+            ),
+            if (_sheet.habilidades.isEmpty)
+              const Text('Nenhuma habilidade. Elas aparecem no cartão da ficha durante a sessão.'),
+            for (var i = 0; i < _sheet.habilidades.length; i++)
+              Card(
+                child: ListTile(
+                  title: Text(_sheet.habilidades[i].nome),
+                  subtitle: Text(_sheet.habilidades[i].descricao.replaceAll('**', ''),
+                      maxLines: 2, overflow: TextOverflow.ellipsis),
+                  onTap: () => _editHabilidade(i),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => setState(() => _sheet =
+                        _sheet.copyWith(habilidades: [..._sheet.habilidades]..removeAt(i))),
+                  ),
+                ),
+              ),
             const SizedBox(height: 32),
             FilledButton(onPressed: _save, child: const Text('Salvar personagem')),
           ],
