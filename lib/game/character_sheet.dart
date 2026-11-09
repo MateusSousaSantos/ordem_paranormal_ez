@@ -71,6 +71,9 @@ class GameRules {
   /// Executor's Ímpeto bar has this many slots.
   static const impetoMax = 7;
 
+  /// Analista's Análise has this many slots.
+  static const analiseMax = 4;
+
   /// The three core attributes.
   static const atributos = ['fisico', 'mente', 'emocao'];
   static const atributoLabels = {
@@ -118,6 +121,7 @@ class GameRules {
       habilidades: const [],
       inventario: const [],
       impeto: 0,
+      analise: 0,
       notes: '',
       updatedAt: DateTime.now().millisecondsSinceEpoch,
     );
@@ -140,6 +144,7 @@ class CharacterSheet {
     required this.habilidades,
     required this.inventario,
     this.impeto = 0,
+    this.analise = 0,
     required this.notes,
     required this.updatedAt,
   });
@@ -160,6 +165,9 @@ class CharacterSheet {
 
   /// Executor ability: filled Ímpeto slots, 0..[GameRules.impetoMax].
   final int impeto;
+
+  /// Analista ability: filled Análise slots, 0..[GameRules.analiseMax].
+  final int analise;
   final String notes;
 
   /// Milliseconds since epoch of the last change.
@@ -177,6 +185,7 @@ class CharacterSheet {
     List<Habilidade>? habilidades,
     List<String>? inventario,
     int? impeto,
+    int? analise,
     String? notes,
   }) {
     return CharacterSheet(
@@ -192,6 +201,7 @@ class CharacterSheet {
       habilidades: habilidades ?? this.habilidades,
       inventario: inventario ?? this.inventario,
       impeto: (impeto ?? this.impeto).clamp(0, GameRules.impetoMax),
+      analise: (analise ?? this.analise).clamp(0, GameRules.analiseMax),
       notes: notes ?? this.notes,
       updatedAt: DateTime.now().millisecondsSinceEpoch,
     );
@@ -219,6 +229,7 @@ class CharacterSheet {
         'habilidades': habilidades.map((h) => h.toJson()).toList(),
         'inventario': inventario,
         'impeto': impeto,
+        'analise': analise,
         'notes': notes,
         'updatedAt': updatedAt,
       };
@@ -253,6 +264,7 @@ class CharacterSheet {
       ],
       inventario: [for (final i in json['inventario'] as List? ?? const []) i as String],
       impeto: ((json['impeto'] as num?)?.toInt() ?? 0).clamp(0, GameRules.impetoMax),
+      analise: ((json['analise'] as num?)?.toInt() ?? 0).clamp(0, GameRules.analiseMax),
       notes: json['notes'] as String? ?? '',
       updatedAt: (json['updatedAt'] as num?)?.toInt() ?? 0,
     );

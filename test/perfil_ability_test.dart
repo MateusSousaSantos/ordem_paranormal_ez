@@ -39,5 +39,26 @@ void main() {
     ));
     expect(find.text('Ímpeto'), findsNothing);
     expect(find.text('Vigilante'), findsOneWidget);
+    expect(find.text('Análise'), findsNothing);
+  });
+
+  testWidgets('Analista gets 4 Análise diamonds; tapping fills them', (tester) async {
+    var sheet = GameRules.newSheet(id: 'x').copyWith(perfil: PerfilPsicologico.analista);
+    Future<void> pump() => tester.pumpWidget(MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              height: 78,
+              child: PerfilAbility(sheet: sheet, onChanged: (s) => sheet = s),
+            ),
+          ),
+        ));
+    await pump();
+    expect(find.text('Análise'), findsOneWidget);
+    final slots = find.bySemanticsLabel(RegExp(r'^Análise \d$'));
+    expect(slots, findsNWidgets(4));
+    await tester.tap(slots.at(3));
+    expect(sheet.analise, 4);
+    expect(CharacterSheet.fromJson(sheet.toJson()).analise, 4);
+    expect(sheet.copyWith(analise: 9).analise, GameRules.analiseMax);
   });
 }

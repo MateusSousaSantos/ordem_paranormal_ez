@@ -21,6 +21,12 @@ class PerfilAbility extends StatelessWidget {
           filled: sheet.impeto,
           onChanged: (v) => onChanged(sheet.copyWith(impeto: v)),
         ),
+      PerfilPsicologico.analista => DiamondBar(
+          label: 'Análise',
+          slots: GameRules.analiseMax,
+          filled: sheet.analise,
+          onChanged: (v) => onChanged(sheet.copyWith(analise: v)),
+        ),
       _ => _AbilityPanel(label: sheet.perfil.label, child: const SizedBox.shrink()),
     };
   }
@@ -97,6 +103,64 @@ class SlotBar extends StatelessWidget {
                 ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Like [SlotBar] but with diamond-shaped slots (Analista's Análise).
+/// Tap a diamond to fill up to it; tap the last filled one to empty it.
+class DiamondBar extends StatelessWidget {
+  const DiamondBar({
+    super.key,
+    required this.label,
+    required this.slots,
+    required this.filled,
+    required this.onChanged,
+  });
+
+  final String label;
+  final int slots;
+  final int filled;
+  final ValueChanged<int> onChanged;
+
+  static const _empty = Color(0xFF5A5A5A);
+
+  @override
+  Widget build(BuildContext context) {
+    return _AbilityPanel(
+      label: label,
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < slots; i++)
+              Semantics(
+                label: '$label ${i + 1}',
+                button: true,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onChanged(filled == i + 1 ? i : i + 1),
+                  child: Padding(
+                    // A 20px square rotated 45° is ~28px wide.
+                    padding: EdgeInsets.fromLTRB(4, 4, i == slots - 1 ? 4 : 8, 4),
+                    child: Transform.rotate(
+                      angle: 0.785398, // 45°
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: i < filled ? SheetStyle.box : _empty,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
