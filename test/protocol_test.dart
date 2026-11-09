@@ -37,4 +37,10 @@ void main() {
     expect(sheet.pericias, hasLength(20));
     expect(sheet.pericias.values.toSet(), {Die.d4});
   });
+
+  test('every perícia has a parent atributo', () {
+    for (final p in GameRules.pericias) {
+      expect(GameRules.atributos, contains(GameRules.periciaAtributo[p]), reason: p);
+    }
+  });
 }

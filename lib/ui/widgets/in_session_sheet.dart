@@ -288,8 +288,9 @@ Future<void> showPericias(
               Flexible(
                 child: GridView.count(
                   shrinkWrap: true,
-                  crossAxisCount: 4,
-                  childAspectRatio: 3.6,
+                  // 2 columns on small phones so names fit.
+                  crossAxisCount: MediaQuery.sizeOf(context).width < 760 ? 2 : 3,
+                  childAspectRatio: MediaQuery.sizeOf(context).width < 760 ? 7.5 : 5.2,
                   mainAxisSpacing: 6,
                   crossAxisSpacing: 6,
                   children: [
@@ -314,7 +315,22 @@ Future<void> showPericias(
                                       style: SheetStyle.mono(11, bold: true),
                                       overflow: TextOverflow.ellipsis),
                                 ),
-                                DieBadge(die: current.pericias[key]!, size: 26),
+                                // perícia die + atributo die, e.g. "d8 + d6 Físico"
+                                DieBadge(die: current.pericias[key]!, size: 24),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                                  child: Text('+', style: SheetStyle.mono(12, bold: true)),
+                                ),
+                                DieBadge(
+                                    die: current.atributos[GameRules.periciaAtributo[key]]!,
+                                    size: 24),
+                                const SizedBox(width: 4),
+                                SizedBox(
+                                  width: 46,
+                                  child: Text(
+                                      GameRules.atributoLabels[GameRules.periciaAtributo[key]]!,
+                                      style: SheetStyle.mono(10)),
+                                ),
                               ],
                             ),
                           ),

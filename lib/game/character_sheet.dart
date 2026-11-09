@@ -107,6 +107,30 @@ class GameRules {
     'Vigor',
   ];
 
+  /// The atributo each perícia rolls with, alongside its own die.
+  static const periciaAtributo = {
+    'Acrobacia': 'fisico',
+    'Animais': 'emocao',
+    'Aptidão': 'mente',
+    'Atletismo': 'fisico',
+    'Crime': 'fisico',
+    'Disciplina': 'emocao',
+    'Enganação': 'emocao',
+    'Furtividade': 'fisico',
+    'Inspecionar': 'emocao',
+    'Intimidar': 'emocao',
+    'Intuição': 'emocao',
+    'Luta': 'fisico',
+    'Medicina': 'mente',
+    'Ocultismo': 'mente',
+    'Ofício': 'mente',
+    'Percepção': 'mente',
+    'Persuasão': 'emocao',
+    'Pontaria': 'fisico',
+    'Sobrevivência': 'mente',
+    'Vigor': 'fisico',
+  };
+
   static CharacterSheet newSheet({required String id, String name = ''}) {
     return CharacterSheet(
       id: id,
