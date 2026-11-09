@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../game/character_sheet.dart';
 
-/// A die drawn as its classic shape (d4 triangle, d6 square, d8 diamond,
-/// d10 kite, d12 pentagon, d20 hexagon) with the number of sides inside.
+/// A die drawn as a shape (d4 triangle, d6 square, d8 diamond,
+/// d10 hexagon, d12 decagon, d20 hexagon) with the number of sides inside.
 class DieBadge extends StatelessWidget {
   const DieBadge({super.key, required this.die, this.size = 40, this.onTap});
 
@@ -66,14 +66,9 @@ class _DiePainter extends CustomPainter {
         path.addPolygon(
             [Offset(w / 2, 0), Offset(w, h / 2), Offset(w / 2, h), Offset(0, h / 2)], true);
       case Die.d10:
-        path.addPolygon([
-          Offset(w / 2, 0),
-          Offset(w * 0.96, h * 0.42),
-          Offset(w / 2, h),
-          Offset(w * 0.04, h * 0.42),
-        ], true);
+        path.addPolygon(_regular(6, w, h, -math.pi / 2), true);
       case Die.d12:
-        path.addPolygon(_regular(5, w, h, -math.pi / 2), true);
+        path.addPolygon(_regular(10, w, h, -math.pi / 2), true);
       case Die.d20:
         path.addPolygon(_regular(6, w, h, -math.pi / 2), true);
     }
