@@ -3,16 +3,14 @@ import 'package:flutter/material.dart';
 import '../../game/character_sheet.dart';
 import '../theme/sheet_style.dart';
 
-/// The ability tied to the character's perfil psicológico, or nothing when
-/// that perfil's ability isn't implemented yet.
+/// The ability tied to the character's perfil psicológico, shown in the
+/// bottom panel of the in-session sheet. Perfis whose ability isn't
+/// implemented yet show an empty panel with the perfil name.
 class PerfilAbility extends StatelessWidget {
   const PerfilAbility({super.key, required this.sheet, required this.onChanged});
 
   final CharacterSheet sheet;
   final ValueChanged<CharacterSheet> onChanged;
-
-  /// Whether [perfil] has an ability panel to show.
-  static bool hasAbility(PerfilPsicologico perfil) => perfil == PerfilPsicologico.executor;
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +21,36 @@ class PerfilAbility extends StatelessWidget {
           filled: sheet.impeto,
           onChanged: (v) => onChanged(sheet.copyWith(impeto: v)),
         ),
-      _ => const SizedBox.shrink(),
+      _ => _AbilityPanel(label: sheet.perfil.label, child: const SizedBox.shrink()),
     };
   }
 }
 
-/// A labelled row of [slots] wide boxes, [filled] of them lit.
-/// Tap a slot to fill up to it; tap the last filled slot to empty it.
+class _AbilityPanel extends StatelessWidget {
+  const _AbilityPanel({required this.label, required this.child});
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: SheetStyle.panel,
+      padding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(label, style: SheetStyle.mono(15, bold: true)),
+          const SizedBox(height: 4),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+}
+
+/// A labelled row of [slots] boxes, [filled] of them lit, stretched to the
+/// panel width. Tap a slot to fill up to it; tap the last filled one to empty it.
 class SlotBar extends StatelessWidget {
   const SlotBar({
     super.key,
@@ -48,30 +69,24 @@ class SlotBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: SheetStyle.panel,
-      padding: const EdgeInsets.fromLTRB(6, 2, 6, 6),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: SheetStyle.mono(13, bold: true)),
-          const SizedBox(height: 2),
-          Row(
-            mainAxisSize: MainAxisSize.min,
+    return _AbilityPanel(
+      label: label,
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          height: 26,
+          child: Row(
             children: [
               for (var i = 0; i < slots; i++)
-                Semantics(
-                  label: '$label ${i + 1}',
-                  button: true,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => onChanged(filled == i + 1 ? i : i + 1),
-                    child: Padding(
-                      padding: EdgeInsets.only(right: i == slots - 1 ? 0 : 4),
+                Expanded(
+                  child: Semantics(
+                    label: '$label ${i + 1}',
+                    button: true,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => onChanged(filled == i + 1 ? i : i + 1),
                       child: Container(
-                        width: 30,
-                        height: 16,
+                        margin: EdgeInsets.only(right: i == slots - 1 ? 0 : 6),
                         decoration: BoxDecoration(
                           color: i < filled ? SheetStyle.box : _empty,
                           borderRadius: BorderRadius.circular(1.5),
@@ -82,7 +97,7 @@ class SlotBar extends StatelessWidget {
                 ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -75,20 +75,16 @@ class InSessionSheet extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (PerfilAbility.hasAbility(sheet.perfil)) ...[
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: PerfilAbility(sheet: sheet, onChanged: onChanged),
-                          ),
-                        ],
                         const SizedBox(height: 10),
                         SizedBox(
                           height: 78,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Expanded(child: _HabilidadeCard(habilidades: sheet.habilidades)),
+                              // The perfil's own ability (Ímpeto for Executor...).
+                              Expanded(
+                                child: PerfilAbility(sheet: sheet, onChanged: onChanged),
+                              ),
                               const SizedBox(width: 10),
                               SizedBox(
                                 width: 104,
@@ -249,69 +245,6 @@ class _Atributos extends StatelessWidget {
             ),
         ],
       ),
-    );
-  }
-}
-
-class _HabilidadeCard extends StatefulWidget {
-  const _HabilidadeCard({required this.habilidades});
-
-  final List<Habilidade> habilidades;
-
-  @override
-  State<_HabilidadeCard> createState() => _HabilidadeCardState();
-}
-
-class _HabilidadeCardState extends State<_HabilidadeCard> {
-  int _page = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    final list = widget.habilidades;
-    return Container(
-      color: SheetStyle.panel,
-      padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
-      child: list.isEmpty
-          ? Center(
-              child: Text('Sem habilidades. Adicione em Meus personagens.',
-                  style: SheetStyle.mono(11), textAlign: TextAlign.center),
-            )
-          : Stack(
-              children: [
-                PageView.builder(
-                  itemCount: list.length,
-                  onPageChanged: (p) => setState(() => _page = p),
-                  itemBuilder: (context, i) => SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(list[i].nome, style: SheetStyle.fredoka(17, weight: 600)),
-                        RichDescription(list[i].descricao, style: SheetStyle.mono(10.5)),
-                      ],
-                    ),
-                  ),
-                ),
-                if (list.length > 1)
-                  Positioned(
-                    right: 0,
-                    top: 4,
-                    child: Row(
-                      children: [
-                        for (var i = 0; i < list.length; i++)
-                          Container(
-                            margin: const EdgeInsets.only(left: 3),
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: i == _page ? SheetStyle.ink : SheetStyle.ink.withAlpha(80),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
     );
   }
 }

@@ -15,7 +15,10 @@ void main() {
     var sheet = GameRules.newSheet(id: 'x').copyWith(perfil: PerfilPsicologico.executor);
     Future<void> pump() => tester.pumpWidget(MaterialApp(
           home: Scaffold(
-            body: PerfilAbility(sheet: sheet, onChanged: (s) => sheet = s),
+            body: SizedBox(
+              height: 78,
+              child: PerfilAbility(sheet: sheet, onChanged: (s) => sheet = s),
+            ),
           ),
         ));
     await pump();
@@ -30,10 +33,11 @@ void main() {
     expect(sheet.impeto, 2);
   });
 
-  testWidgets('other perfis show no Ímpeto bar', (tester) async {
+  testWidgets('other perfis show their name and no Ímpeto bar', (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: PerfilAbility(sheet: GameRules.newSheet(id: 'x'), onChanged: (_) {}),
     ));
     expect(find.text('Ímpeto'), findsNothing);
+    expect(find.text('Vigilante'), findsOneWidget);
   });
 }
