@@ -26,6 +26,10 @@ class PerfilAbility extends StatelessWidget {
           slots: GameRules.analiseMax,
           filled: sheet.analise,
           onChanged: (v) => onChanged(sheet.copyWith(analise: v)),
+          description: 'Você pode gastar uma ação para receber 2 marcadores de análise. '
+              'Quando faz um teste, pode gastar quantos marcadores quiser após rolar '
+              'os dados. Para cada marcador gasto, pode mudar o resultado de um dado '
+              'em +1 ou –1 (até o máximo do dado)',
         ),
       _ => _AbilityPanel(label: sheet.perfil.label, child: const SizedBox.shrink()),
     };
@@ -118,6 +122,7 @@ class DiamondBar extends StatelessWidget {
     required this.slots,
     required this.filled,
     required this.onChanged,
+    this.description,
   });
 
   final String label;
@@ -125,11 +130,14 @@ class DiamondBar extends StatelessWidget {
   final int filled;
   final ValueChanged<int> onChanged;
 
+  /// Rules text shown to the right of the diamonds (scrolls if too long).
+  final String? description;
+
   static const _empty = Color(0xFF5A5A5A);
 
   @override
   Widget build(BuildContext context) {
-    return _AbilityPanel(
+    final bar = _AbilityPanel(
       label: label,
       child: Align(
         alignment: Alignment.topLeft,
@@ -163,6 +171,24 @@ class DiamondBar extends StatelessWidget {
           ],
         ),
       ),
+    );
+    final text = description;
+    if (text == null) return bar;
+    // Same panel color on both sides, so it reads as one panel.
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        IntrinsicWidth(child: bar),
+        Expanded(
+          child: Container(
+            color: SheetStyle.panel,
+            padding: const EdgeInsets.fromLTRB(4, 6, 10, 6),
+            child: SingleChildScrollView(
+              child: Text(text, style: SheetStyle.mono(10)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

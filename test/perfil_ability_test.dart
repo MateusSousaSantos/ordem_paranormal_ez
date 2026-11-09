@@ -54,6 +54,7 @@ void main() {
         ));
     await pump();
     expect(find.text('Análise'), findsOneWidget);
+    expect(find.textContaining('2 marcadores de análise'), findsOneWidget);
     final slots = find.bySemanticsLabel(RegExp(r'^Análise \d$'));
     expect(slots, findsNWidgets(4));
     await tester.tap(slots.at(3));
