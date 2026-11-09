@@ -54,6 +54,7 @@ class InSessionSheet extends StatelessWidget {
                                     Expanded(
                                       child: ResourceTracker(
                                         label: 'PV',
+                                        tilt: -0.08,
                                         resource: sheet.pv,
                                         onChanged: (r) => onChanged(sheet.copyWith(pv: r)),
                                       ),
@@ -62,6 +63,7 @@ class InSessionSheet extends StatelessWidget {
                                     Expanded(
                                       child: ResourceTracker(
                                         label: 'PD',
+                                        tilt: -0.05,
                                         resource: sheet.pd,
                                         onChanged: (r) => onChanged(sheet.copyWith(pd: r)),
                                       ),
@@ -198,6 +200,9 @@ class _Header extends StatelessWidget {
 class _Atributos extends StatelessWidget {
   const _Atributos({required this.sheet, required this.onChanged});
 
+  /// Rotation in radians for each attribute row.
+  static const _tilt = {'fisico': -0.07, 'mente': 0.05, 'emocao': -0.05};
+
   final CharacterSheet sheet;
   final ValueChanged<CharacterSheet> onChanged;
 
@@ -212,21 +217,26 @@ class _Atributos extends StatelessWidget {
           for (final key in GameRules.atributos)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(GameRules.atributoLabels[key]!, style: SheetStyle.fredoka(26, weight: 600)),
-                  const SizedBox(width: 8),
-                  DieBadge(
-                    die: sheet.atributos[key]!,
-                    size: 36,
-                    onTap: () async {
-                      final d = await pickDie(context,
-                          title: GameRules.atributoLabels[key]!, current: sheet.atributos[key]!);
-                      if (d != null) onChanged(sheet.withAtributo(key, d));
-                    },
-                  ),
-                ],
+              // Hand-drawn tilt from the paper design.
+              child: Transform.rotate(
+                angle: _tilt[key]!,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(GameRules.atributoLabels[key]!,
+                        style: SheetStyle.fredoka(26, weight: 600)),
+                    const SizedBox(width: 8),
+                    DieBadge(
+                      die: sheet.atributos[key]!,
+                      size: 36,
+                      onTap: () async {
+                        final d = await pickDie(context,
+                            title: GameRules.atributoLabels[key]!, current: sheet.atributos[key]!);
+                        if (d != null) onChanged(sheet.withAtributo(key, d));
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
         ],

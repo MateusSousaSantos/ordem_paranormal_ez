@@ -12,7 +12,11 @@ class ResourceTracker extends StatelessWidget {
     required this.label,
     required this.resource,
     required this.onChanged,
+    this.tilt = 0,
   });
+
+  /// Rotation in radians of the label and circle (hand-drawn look).
+  final double tilt;
 
   final String label;
   final Resource resource;
@@ -25,39 +29,42 @@ class ResourceTracker extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: () => _edit(context),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.fromLTRB(6, 2, 10, 2),
-                decoration: BoxDecoration(
-                  color: SheetStyle.box,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child:
-                    Text(label, style: SheetStyle.fredoka(18, weight: 650, color: SheetStyle.dark)),
-              ),
-              Transform.translate(
-                offset: const Offset(-6, 0),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
+          child: Transform.rotate(
+            angle: tilt,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.fromLTRB(6, 2, 10, 2),
                   decoration: BoxDecoration(
-                    color: SheetStyle.background,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: SheetStyle.box, width: 3),
+                    color: SheetStyle.box,
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  child: FittedBox(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child:
-                          Text('${resource.current}', style: SheetStyle.fredoka(20, weight: 650)),
+                  child: Text(label,
+                      style: SheetStyle.fredoka(18, weight: 650, color: SheetStyle.dark)),
+                ),
+                Transform.translate(
+                  offset: const Offset(-6, 0),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: SheetStyle.background,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: SheetStyle.box, width: 3),
+                    ),
+                    child: FittedBox(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child:
+                            Text('${resource.current}', style: SheetStyle.fredoka(20, weight: 650)),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         const SizedBox(width: 4),
